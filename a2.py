@@ -18,19 +18,17 @@ def get_unconditional_mean_imputation(file):
 		mean = data[column].mean()
 		#print("{} Mean : {}".format(column,mean))
 		data[column].fillna(mean, inplace=True)
-
+	data.to_csv('V00902907_{}_imputed_mean.csv'.format(file.split("_")[1]),index=False)
 	return str(get_mae(data,complete))
  
 
 # Hot Deck Imputation
 def get_hot_deck_imputation(file):
-	complete = pd.read_csv('dataset_complete.csv', nrows=5, na_values=['?']) 
-	data = pd.read_csv(file, na_values=['?'], nrows=5 )
+	complete = pd.read_csv('dataset_complete.csv',  na_values=['?']) 
+	data = pd.read_csv(file, na_values=['?'] )
 	closest_distances = {} 
-	print(data)
 	for index, row in enumerate(data.itertuples(), 0):
 		closest_distances[index]= []
-		print(index)
 		for index2, row2 in enumerate(data.itertuples(), 0):
 			if index == index2:
 				continue
@@ -57,7 +55,7 @@ def get_hot_deck_imputation(file):
 			while pd.isnull(closest_distances[index][i]["row"][ci+1]):
 				i+=1
 			data.loc[index,col] = closest_distances[index][i]["row"][ci+1]
-	print(data)
+	data.to_csv('V00902907_{}_imputed_hd.csv'.format(file.split("_")[1]),index=False)
 	# Get MAE
 	return str(get_mae(data,complete))# # Conditional Mean Imputation
 
@@ -72,15 +70,15 @@ def get_conditional_mean_imputation(file):
 		#print("{} Yes Mean : {}".format(column,yes_mean))
 		data.loc[data["Binary Label"] == "No",column] = data.loc[data["Binary Label"] == "No",column].fillna(no_mean )
 		data.loc[data["Binary Label"] == "Yes",column] = data.loc[data["Binary Label"] == "Yes",column].fillna(yes_mean )
+	data.to_csv('V00902907_{}_imputed_mean_conditional.csv'.format(file.split("_")[1]),index=False)
 	# Get MAE
 	return str(get_mae(data,complete))# # Conditional Mean Imputation
 
 # Conditional Hot Deck Imputation
 def get_conditional_hot_deck_imputation(file):
-	complete = pd.read_csv('dataset_complete.csv', nrows=5, na_values=['?']) 
-	data = pd.read_csv(file, na_values=['?'], nrows=5 )
-	closest_distances = {} 
-	print(data)
+	complete = pd.read_csv('dataset_complete.csv', na_values=['?']) 
+	data = pd.read_csv(file, na_values=['?'])
+	closest_distances = {}
 	for index, row in enumerate(data.itertuples(), 0):
 		closest_distances[index]= []
 		print(index)
@@ -107,26 +105,22 @@ def get_conditional_hot_deck_imputation(file):
 			if not pd.isnull(data.loc[index,col]):
 				continue
 			i = 0
-			while i < len(closest_distances[index][i]) and (pd.isnull(closest_distances[index][i]["row"][ci+1]) or closest_distances[index][i]["row"][11]!= row[11]):
+			while i <= len(closest_distances[index][i]) and (pd.isnull(closest_distances[index][i]["row"][ci+1]) or closest_distances[index][i]["row"][11]!= row[11]):
 				i+=1
 			if closest_distances[index][i]["row"][11]== row[11]:
 				data.loc[index,col] = closest_distances[index][i]["row"][ci+1]
-	print(data)
 	# Get MAE
+	data.to_csv('V00902907_{}_imputed_hd_conditional.csv'.format(file.split("_")[1]),index=False)
 	return str(get_mae(data,complete))# # Conditional Mean Imputation
-start = time.perf_counter()
 # Main calls
-#print("MAE_01_mean = {}".format(get_unconditional_mean_imputation('dataset_missing01.csv')))
-#print("MAE_01_mean_conditional = {}".format(get_conditional_mean_imputation('dataset_missing01.csv')))
-#print("MAE_01_hd = {}".format(get_hot_deck_imputation('dataset_missing01.csv')))
-#print("MAE_01_hd_conditional = {}".format(get_conditional_hot_deck_imputation('dataset_missing01.csv')))
-#print("MAE_20_mean = {}".format(get_unconditional_mean_imputation('dataset_missing20.csv')))
-#print("MAE_20_mean_conditional = {}".format(get_conditional_mean_imputation('dataset_missing20.csv')))
-
+print("MAE_01_mean = {}".format(get_unconditional_mean_imputation('dataset_missing01.csv')))
+print("MAE_01_mean_conditional = {}".format(get_conditional_mean_imputation('dataset_missing01.csv')))
+print("MAE_01_hd = {}".format(get_hot_deck_imputation('dataset_missing01.csv')))
+print("MAE_01_hd_conditional = {}".format(get_conditional_hot_deck_imputation('dataset_missing01.csv')))
+print("MAE_20_mean = {}".format(get_unconditional_mean_imputation('dataset_missing20.csv')))
+print("MAE_20_mean_conditional = {}".format(get_conditional_mean_imputation('dataset_missing20.csv')))
 print("MAE_20_hd = {}".format(get_hot_deck_imputation('dataset_missing20.csv')))
 print("MAE_20_hd = {}".format(get_conditional_hot_deck_imputation('dataset_missing20.csv')))
 
 
-end = time.perf_counter() - start
 
-print("Time: "+str(end))
